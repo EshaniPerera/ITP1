@@ -1,0 +1,53 @@
+/* Premium.css */
+
+.premium-container {
+    background-color: #d9f6f5;
+    min-height: 100vh; /* Ensures it covers the entire viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.w-75 {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.btn-custom-add {
+    background-color: #28a745; /* Green color */
+    color: white;
+    border: none;
+}
+
+.btn-custom-add:hover {
+    background-color: #218838;
+}
+
+.btn-custom-update {
+    background-color: #007bff; /* Blue color */
+    color: white;
+    border: none;
+}
+
+.btn-custom-update:hover {
+    background-color: #0056b3;
+}
+
+.btn-custom-delete {
+    background-color: #dc3545; /* Red color */
+    color: white;
+    border: none;
+}
+
+.btn-custom-delete:hover {
+    background-color: #c82333;
+}
+
+.table {
+    background-color: #f8f9fa;
+}
+
+.form-control {
+    border-color: #007bff;
+}
