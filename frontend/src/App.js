@@ -23,11 +23,12 @@ const App = () => {
           <Route path="/homepage" element={<HomePage />} />
           
           <Route path="/create" element={<CreatePremium />} />
-          <Route path="/update/:id" element={<UpdatePremium />} />
+          <Route path="/update/:username" element={<UpdatePremium />} />
 
           <Route path="/premium" element={<Premium />} />
           <Route path="/user manager" element={<premium/>} />
-          <Route path="/adminLogin" element={<AdminLogin />} />
+          {/* <Route path="/adminLogin" element={<AdminLogin />} /> */}
+          <Route path="/admin/dashboard" element={<AdminLogin />} />
 
         </Routes>
       </BrowserRouter>

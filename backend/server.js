@@ -1,4 +1,3 @@
-
 import express from "express";
 import mysql from "mysql";
 import cors from "cors";
@@ -11,16 +10,9 @@ const port = 8800;
 const dbConfig = {
   host: "localhost",
   user: "root",
-  password: "Eshani@123",
-  database: "test",
+  password: "root",
+  database: "users",
 };
-
-/*const dbConfig = {
-  host: "localhost",
-  user: "root",
-  password: "chamath77",
-  database: "besteats",
-};*/
 
 app.use(express.json());
 app.use(cors());
@@ -57,15 +49,6 @@ app.listen(port, () => {
   console.log(`App started and listening on port ${port}`);
 });
 
-// app.get("/", (req, res) => {
-//   res.send("Hello this is backend!");
-// });
-
-// app.get("/", (req, res) => {
-//     res.send("Hello this is backend!");
-//   });
-
-
 app.get("/Users/Login", (req, res) => {
   const sqlSelect = "SELECT * FROM customers";
 
@@ -78,56 +61,101 @@ app.get("/Users/Login", (req, res) => {
   });
 });
 
-
-app.post('/create', (req, res) => {
-  const { name, address, phone_number, email } = req.body; // Destructuring the body
-
-  const sql = "INSERT INTO premium (username, fname, lname, email, phone_number, city, password) VALUES (?, ?, ?, ?, ?, ?, ?)"; 
-
-  db.query(sql, [name, address, phone_number, email], (err, data) => {
+// Get all Premiumcustomers
+app.get("/premium", (req, res) => {
+  const sql = "SELECT * FROM customers WHERE is_premium_customer = 1";
+  db.query(sql, (err, data) => {
     if (err) {
-      console.error(err); // Log error
+      console.error(err);
       return res.status(500).json("Server Error");
     }
-    // After inserting a new premium customer, also insert a record in premium_registration
-    const registrationDate = new Date(); // Current date
-    const insertRegistrationSql = "INSERT INTO premium_registration (premium_id, registration_date) VALUES (?, ?)";
-    const premiumId = data.insertId; // Get the id of the newly created premium customer
-
-    db.query(insertRegistrationSql, [premiumId, registrationDate], (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json("Server Error");
-      }
-      return res.status(201).json({ message: "Premium Customer Created", data });
-    });
+    return res.status(200).json(data);
   });
 });
 
-app.put('/update/:id', (req, res) => {
-   const { name, phone_number , email } = req.body; // Destructure from req.body
-   const sql = "UPDATE premium SET username = ?, fname = ?, lname = ?, email = ?, phone_number = ?, city = ?, password = ?";
-   const id = req.params.id;
-
-   db.query(sql, [name, address, phone_number, email, id], (err, data) => {
-       if (err) {
-           console.error(err);
-           return res.status(500).json("Server Error");
-       }
-       return res.status(200).json({ message: "Premium Customer Updated", data });
-   });
-  });
-
-
- app.delete('/premium/:id', (req, res) => {
-     const sql = "DELETE FROM premium WHERE ID = ?";
-     const id = req.params.id;
+// Get Premiumcustomers by username
+app.get("/premium/:username", (req, res) => {
+  const username = req.params.username;
+  const sql = "SELECT * FROM customers WHERE username = ?";
+  
+  db.query(sql, [username], (err, result) => {
+    if (err) {
+      console.error('Error fetching customer details:', err);
+      return res.status(500).json({ error: "Error fetching customer details" });
+    }
     
-     db.query(sql, [id], (err, data) => {
-         if(err) return res.json("ERROR");
-         return res.json(data);
-     })
- })
+    if (result.length === 0) {
+      return res.status(404).json({ error: "Customer not found" });
+    }
+
+    const customerDetails = result[0];
+    console.log('Fetched customer details:', customerDetails);
+    res.json(customerDetails);
+  });
+});
+
+
+app.post('/create', (req, res) => {
+  const { username, firstName, lastName, email, phoneNumber, city, password, address } = req.body;
+
+  const sql = "INSERT INTO customers (username, first_name, last_name, email, phone_number, city, password, address, is_premium_customer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)";
+
+  db.query(sql, [username, firstName, lastName, email, phoneNumber, city, password, address], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json("Server Error");
+    }
+    return res.status(201).json({ message: "Premium Customer Created", id: result.insertId });
+  });
+});
+
+// Update customer
+app.put('/premium/update/:username', (req, res) => {
+  const { firstName, lastName, email, phoneNumber, city, address, password } = req.body;
+  const username = req.params.username;
+
+  console.log('Received update request for username:', username);
+  console.log('Update data:', { firstName, lastName, email, phoneNumber, city, address, password: password ? '[REDACTED]' : undefined });
+
+  let sql = "UPDATE customers SET first_name = ?, last_name = ?, email = ?, phone_number = ?, city = ?, address = ?";
+  let values = [firstName, lastName, email, phoneNumber, city, address];
+
+  if (password) {
+    sql += ", password = ?";
+    values.push(password);
+  }
+
+  sql += " WHERE username = ?";
+  values.push(username);
+
+  console.log('Update SQL:', sql);
+  console.log('Update Values:', values.map(v => v === password ? '[REDACTED]' : v));
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Error updating customer:', err);
+      return res.status(500).json("Server Error");
+    }
+    console.log('Customer updated successfully');
+    res.status(200).json({ message: "Customer Updated Successfully", result: result });
+  });
+});
+
+
+
+// Delete customer
+app.delete('/premium/:username', (req, res) => {
+  const sql = "DELETE FROM customers WHERE username = ?";
+  const username = req.params.username;
+  
+  db.query(sql, [username], (err, result) => {
+    if (err) {
+      console.error('Error deleting customer:', err);
+      return res.status(500).json("Server Error");
+    }
+    return res.json({ message: "Customer deleted successfully", result: result });
+  });
+});
 
  // Function to update badge status based on registration date
 const updateBadgeStatus = () => {

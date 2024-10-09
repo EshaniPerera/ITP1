@@ -9,7 +9,7 @@ import {
 import { BsFillCartFill, BsFillSafeFill } from "react-icons/bs";
 import { TbTruckDelivery } from "react-icons/tb";
 import { FaUserFriends, FaWallet } from "react-icons/fa";
-import { MdLogout, MdVerifiedUser } from "react-icons/md";
+import { MdLogout,MdVerifiedUser } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -21,34 +21,40 @@ const Navbar = () => {
   const [adminLogin, setAdminLogin] = useState(false);
   const [cartCount, setCartCount] = useState(0); // New state for cart count
 
-  const username = useSelector((state) => state.Login?.LoginUser?.UserName || ""); // Ensure username is defined
-  const cart = useSelector((state) => state.order?.order?.foodList || []);
+  const username = useSelector((state) => state.Login.LoginUser.UserName);
+  // const cart = useSelector((state) => state.Order.order.foodList);
 
-  useEffect(() => {
-    let itemCount = 0;
-    cart.forEach((item) => {
-      itemCount += item.qty;
-    });
-    setCartCount(itemCount);
-  }, [cart]);
+  // useEffect(() => {
+  //   console.log(
+  //     "9999999999999999999999999999999999999999999999999999999999999"
+  //   );
+
+  //   let itemCount = 0;
+  //   cart.forEach((item) => {
+  //     itemCount += item.qty;
+  //   });
+  //   setCartCount(itemCount);
+
+  // }, [cart]);
 
   useEffect(() => {
     function validateUsername(username) {
       // Check if the first character is 'A' or 'a'
       const startsWithA = username[0] === "A" || username[0] === "a";
-
-      // Check if only the first two characters are letters
-      const hasTwoLetters = /^[A-Za-z]{2}/.test(username) && !/[A-Za-z]/.test(username.slice(2));
-
-      return startsWithA && hasTwoLetters;
+      return startsWithA; // Only require it to start with 'A'
     }
-
+  
     if (validateUsername(username)) {
       setAdminLogin(true);
     } else {
       setAdminLogin(false);
     }
   }, [username]);
+
+  // Function to increase cart count
+  const handleAddToCart = () => {
+    setCartCount(cartCount + 1);
+  };
 
   function handleDelivery() {
     setDelivery(true);
@@ -193,13 +199,15 @@ const Navbar = () => {
           <ul className="flex flex-col p-4 text-gray-800">
             <li className="text-xl py-4 flex">
               <button
-                onClick={() => handleNavigate("/create")}
+                onClick={() => handleNavigate("/Orders")}
                 className="flex items-center"
               >
                 <TbTruckDelivery size={25} className="mr-4" />
                 Orders
               </button>
             </li>
+     
+      
             <li className="text-xl py-4 flex">
               <button
                 onClick={() => handleNavigate("/promotions")}
@@ -228,7 +236,7 @@ const Navbar = () => {
                 Logout
               </button>
             </li>
-
+        
             {adminLogin && (
               <li className="text-xl py-4 flex">
                 <button

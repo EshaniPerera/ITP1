@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { UpdateUserName } from "../../redux/reducers/LoginReducer";
+import axios from 'axios'; // Make sure to install axios: npm install axios
 
 function SignupPage() {
   const [username, setUsername] = useState("");
@@ -11,27 +12,39 @@ function SignupPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [city, setCity] = useState(""); // New state for the city
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
-    // Example validation logic before handling the redirect
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
 
-    // Add logic for user signup here (e.g., API call, form validation)
-    
-    // Dispatch username to Redux store
-    dispatch(UpdateUserName(username));
-    
-    // Redirect to homepage after successful signup
-    navigate("/homepage");
+    try {
+      const response = await axios.post('http://localhost:8800/create', {
+        username,
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        city,
+        password,
+        address
+      });
+
+      console.log('Signup successful:', response.data);
+      dispatch(UpdateUserName(username));
+      navigate("/homepage");
+    } catch (error) {
+      console.error('Signup failed:', error.response ? error.response.data : error.message);
+      alert('Signup failed. Please try again.');
+    }
   };
 
   return (
@@ -93,8 +106,6 @@ function SignupPage() {
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
           </div>
-
-          {/* City Dropdown */}
           <div style={styles.inputWrapper}>
             <label htmlFor="city" style={styles.label}>City</label>
             <select
@@ -110,6 +121,19 @@ function SignupPage() {
               <option value="kaluthara">Kaluthara</option>
             </select>
           </div>
+
+
+          <div style={styles.inputWrapper}>
+            <label htmlFor="address" style={styles.label}>Address</label>
+            <input
+              type="text"
+              id="address"
+              style={styles.input}
+              required
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
 
           <div style={styles.inputWrapper}>
             <label htmlFor="password" style={styles.label}>Password</label>

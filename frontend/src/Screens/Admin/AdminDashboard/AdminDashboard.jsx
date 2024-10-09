@@ -12,45 +12,37 @@ function AdminLogin() {
   const [alertTopic, setAlertTopic] = useState("");
   const [buttonCount, setButtonCount] = useState(1);
 
-  const username =  localStorage.getItem("username");
+  const username = localStorage.getItem("username");
 
   const handleButtonPress = (item) => {
+    console.log("Item ID:", item.id);
+    console.log("Item Code:", item.code);
 
+    // Check if the username starts with "AUM"
+    const startsWithAUM = username.startsWith("AUM");
 
-    console.log("------------------------------------", item.id);
-    console.log("------------------------------------", item.code);
+    if (!startsWithAUM) {
+      // If username doesn't start with AUM, show a restricted access alert
+      setAlertTopic("Access Denied");
+      setAlertDescription("You don't have permission to access this page.\nAsk Admin for Permission.");
+      setShowAlert(true);
+      return;  // Prevent further execution
+    }
 
-    const firstTwoChars = username.slice(0, 2);
-
-    if (item.id === 1 && firstTwoChars === item.code) {
-      navigate("/admin/displayfoodlist");
-
+    // Allow navigation only if username starts with "AUM" and item matches
+    if (item.id === 1) {
       
-    }else if(item.id === 2 && firstTwoChars === item.code){
-
-    }
-    else if(item.id === 3 && firstTwoChars === item.code){
-      console.log("33333333333333333333333333333333333");
-
-    }
-    else if(item.id === 4 && firstTwoChars === item.code){
-
-    }
-    else if(item.id === 5 && firstTwoChars === item.code){
-
-    }
-    else if(item.id === 6 && firstTwoChars === item.code){
-
-    }
-    else if(item.id === 7 && firstTwoChars === item.code){
-
-    }
-    else if(item.id === 8 && firstTwoChars === item.code){
-
-    }
-    else if(item.id === 9 && firstTwoChars === item.code){
-
-    }else{
+    } else if (item.id === 2) {
+      // Navigate to the correct page for item id 2
+    } else if (item.id === 3) {
+      // Navigate to the correct page for item id 3
+    } else if (item.id === 4) {
+      // Navigate to the user management page
+      
+    } else if (item.id === 7) {
+      navigate("/premium");
+    } else {
+      // Handle any other cases or restricted access
       setAlertTopic("Error");
       setAlertDescription("This is Restricted\nAsk Admin for Permission");
       setShowAlert(true);
@@ -86,13 +78,11 @@ function AdminLogin() {
       <div className="flex flex-col gap-6 py-6">
         {Admincategories.map((item, index) => (
           <button
+            key={index}  // Make sure key is attached to the button
             style={{ backgroundColor: "white", borderColor: "white" }}
             onClick={() => handleButtonPress(item)}
           >
-            <div
-              key={index}
-              className="bg-white p-6 flex items-center shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-lg border border-gray-200"
-            >
+            <div className="bg-white p-6 flex items-center shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-lg border border-gray-200">
               <img
                 src={item.image}
                 alt={item.name}
