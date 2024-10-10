@@ -62,18 +62,19 @@ app.get("/Users/Login", (req, res) => {
 });
 
 // Get all Premiumcustomers
-app.get("/premium", (req, res) => {
-  const sql = "SELECT * FROM customers WHERE is_premium_customer = 1";
-  db.query(sql, (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json("Server Error");
-    }
-    return res.status(200).json(data);
-  });
-});
+// app.get("/premium", (req, res) => {
+//   const sql = "SELECT * FROM customers WHERE is_premium_customer = 1";
+//   db.query(sql, (err, data) => {
+//     if (err) {
+//       console.error(err);
+//       return res.status(500).json("Server Error");
+//     }
+//     return res.status(200).json(data);
+//   });
+// });
 
-// Get Premiumcustomers by username
+
+// Get Premium customer by username
 app.get("/premium/:username", (req, res) => {
   const username = req.params.username;
   const sql = "SELECT * FROM customers WHERE username = ?";
@@ -95,19 +96,44 @@ app.get("/premium/:username", (req, res) => {
 });
 
 
+//Creating A new customer when signup button clicked and filled the form
 app.post('/create', (req, res) => {
   const { username, firstName, lastName, email, phoneNumber, city, password, address } = req.body;
 
-  const sql = "INSERT INTO customers (username, first_name, last_name, email, phone_number, city, password, address, is_premium_customer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)";
+  // SQL to insert into customers table
+  const sqlInsertCustomer = `INSERT INTO customers 
+    (username, first_name, last_name, email, phone_number, city, password, address, is_premium_customer) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`;
 
-  db.query(sql, [username, firstName, lastName, email, phoneNumber, city, password, address], (err, result) => {
+  // Insert into customers table
+  db.query(sqlInsertCustomer, [username, firstName, lastName, email, phoneNumber, city, password, address], (err, result) => {
     if (err) {
-      console.error(err);
+      console.error("Error inserting into customers table:", err);
       return res.status(500).json("Server Error");
     }
-    return res.status(201).json({ message: "Premium Customer Created", id: result.insertId });
+
+    // SQL to insert into premium_registration table
+    const sqlInsertPremiumReg = `INSERT INTO premium_registration 
+      (customer_username, registration_date, badge_status) 
+      VALUES (?, CURDATE(), NULL)`;
+
+    // Insert into premium_registration table using username
+    db.query(sqlInsertPremiumReg, [username], (err, result) => {
+      if (err) {
+        console.error("Error inserting into premium_registration table:", err);
+        return res.status(500).json("Server Error");
+      }
+
+      // Success response
+      return res.status(201).json({ 
+        message: "Premium Customer Created and Registered Successfully", 
+        username: username 
+      });
+    });
   });
 });
+
+
 
 // Update customer
 app.put('/premium/update/:username', (req, res) => {
@@ -157,31 +183,61 @@ app.delete('/premium/:username', (req, res) => {
   });
 });
 
- // Function to update badge status based on registration date
-const updateBadgeStatus = () => {
-  const currentDate = new Date();
-  const query = `
-    UPDATE premium_registration
-    SET badge_status = CASE 
-      WHEN DATEDIFF(CURDATE(), registration_date) = 30 THEN '30 Days Completed'
-      WHEN DATEDIFF(CURDATE(), registration_date) = 90 THEN '90 Days Completed'
-      ELSE badge_status
-    END
-    WHERE badge_status IS NULL AND DATEDIFF(CURDATE(), registration_date) IN (30, 90);
-  `;
 
-  db.query(query, (err, results) => {
+//Get premium customers with badge status
+app.get('/premiumbatch', (req, res) => {
+  const sqlQuery = `
+    SELECT 
+      c.username, c.first_name, c.last_name, c.phone_number, c.email, pr.registration_date,
+      CASE 
+        WHEN DATEDIFF(CURDATE(), pr.registration_date) < 30 THEN 'New'
+        WHEN DATEDIFF(CURDATE(), pr.registration_date) BETWEEN 30 AND 89 THEN '30 Days Badge'
+        WHEN DATEDIFF(CURDATE(), pr.registration_date) >= 90 THEN '90 Days Badge'
+      END AS badge_status
+    FROM premium_registration pr
+    JOIN customers c ON pr.customer_username = c.username`;
+
+  db.query(sqlQuery, (err, result) => {
     if (err) {
-      console.error(err);
-      return;
+      console.error("Error fetching premium customers:", err);
+      return res.status(500).json("Server Error");
     }
-    console.log(`Updated badge status for ${results.affectedRows} customers.`);
+    res.status(200).json(result);
   });
-};
-
-// Schedule the badge status update to run daily at midnight
-schedule.scheduleJob('0 0 * * *', () => {
-  updateBadgeStatus();
 });
+
+
+//if custoemr table got details of the customer even without the premium registration table
+
+//Get premium customers with badge status
+// app.get('/premiumbatch2', (req, res) => {
+// const sqlQuery = `
+//     SELECT 
+//       c.username, 
+//       c.first_name, 
+//       c.last_name, 
+//       c.phone_number, 
+//       c.email, 
+//       pr.registration_date,
+//       CASE 
+//         WHEN pr.registration_date IS NULL THEN 'No Badge'
+//         WHEN DATEDIFF(CURDATE(), pr.registration_date) < 30 THEN 'New'
+//         WHEN DATEDIFF(CURDATE(), pr.registration_date) BETWEEN 30 AND 89 THEN '30 Days Badge'
+//         WHEN DATEDIFF(CURDATE(), pr.registration_date) >= 90 THEN '90 Days Badge'
+//       END AS badge_status
+//     FROM customers c
+//     LEFT JOIN premium_registration pr ON c.username = pr.customer_username
+//     WHERE c.is_premium_customer = 1`;
+
+//   db.query(sqlQuery, (err, result) => {
+//     if (err) {
+//       console.error("Error fetching premium customers with badge status:", err);
+//       return res.status(500).json("Server Error");
+//     }
+//     res.status(200).json(result);
+//   });
+// });
+
+
 
 

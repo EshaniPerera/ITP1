@@ -51,3 +51,28 @@
 .form-control {
     border-color: #007bff;
 }
+
+
+/* premium.css */
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    color: white;
+    display: inline-block;
+  }
+  
+  /* New Badge */
+  .badge-new {
+    background-color: #38a169; /* Green */
+  }
+  
+  /* 30 Days Badge */
+  .badge-30-days {
+    background-color: #d69e2e; /* Yellow */
+  }
+  
+  /* 90 Days Badge */
+  .badge-90-days {
+    background-color: #e53e3e; /* Red */
+  }
+  
